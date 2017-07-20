@@ -27,7 +27,8 @@
                   <span>好评率{{food.rating}}%</span>
                 </div>
                 <div class="price">
-                  <span class="now">￥{{food.price}}</span><span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
+                  <span class="now">￥{{food.price}}</span><span class="old"
+                                                                v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                 </div>
                 <div class="cartcontrol-wrapper">
                   <cartcontrol :food="food"></cartcontrol>
@@ -38,7 +39,7 @@
         </li>
       </ul>
     </div>
-    <shopcart :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
+    <shopcart v-ref:shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
   </div>
 
 </template>
@@ -73,6 +74,17 @@
           }
         }
         return 0;
+      },
+      selectFoods() {
+        let foods = [];
+        this.goods.forEach((good) => {
+          good.foods.forEach((food) => {
+            if (food.count) {
+              foods.push(food);
+            }
+          });
+        });
+        return foods;
       }
     },
     created() {
@@ -97,12 +109,19 @@
         let el = foodList[index];
         this.foodsScroll.scrollToElement(el, 300);
       },
+      _drop(target) {
+        // 体验优化，异步执行下落动画
+        this.$nextTick(() => {
+          this.$refs.shopcart.drop(target);
+        });
+      },
       _initScroll() {
         this.menuScroll = new BScroll(this.$els.menuWrapper, {
           click: true
         });
 
         this.foodsScroll = new BScroll(this.$els.foodsWrapper, {
+          click: true,
           probeType: 3
         });
 
@@ -124,6 +143,11 @@
     components: {
       shopcart,
       cartcontrol
+    },
+    events: {
+      'cart.add'(target) {
+        this._drop(target);
+      }
     }
 
   };
@@ -229,5 +253,11 @@
               text-decoration: line-through
               font-size: 10px
               color: rgb(147, 154, 159)
+
+          .cartcontrol-wrapper
+            position: absolute
+            right: 0
+            bottom: 12px
+
 
 </style>
